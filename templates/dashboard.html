@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ role.capitalize() }} Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        /* Hide sections by default */
+        .dashboard-section {
+            display: none;
+        }
+        .dashboard-section.active {
+            display: block;
+        }
+
+        /* Basic styles for layout */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .dashboard-header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+        }
+
+        .dashboard-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 15px;
+        }
+
+        .dashboard-nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            margin: 5px 0;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1>{{ role.capitalize() }} Dashboard</h1>
+            <nav class="dashboard-nav">
+                <ul>
+                    <li><a href="#live-tracking" onclick="showSection('live-tracking')">Live Tracking</a></li>
+                    <li><a href="#reports" onclick="showSection('reports')">Reports</a></li>
+                    <li><a href="/">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Live Tracking Section -->
+            <main id="live-tracking" class="dashboard-section active">
+                <h2>Live Accident Tracking Map</h2>
+                <div>
+                    {{ map_html|safe }}
+                </div>
+            </main>
+
+            <!-- Reports Section -->
+            <section id="reports" class="dashboard-section">
+                <h2>Accident / Incident Report</h2>
+                <form action="/submit-report" method="post" class="incident-report-form" onsubmit="return confirmSubmissionAndRedirect()">
+                    <label>Report Type:</label>
+                    <input type="radio" id="incident" name="report_type" value="Incident">
+                    <label for="incident">Incident</label>
+                    <input type="radio" id="accident" name="report_type" value="Accident">
+                    <label for="accident">Accident</label>
+
+                    <label for="time">Time:</label>
+                    <input type="time" id="time" name="time">
+
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date">
+
+                    <label for="facility">Reporting Facility:</label>
+                    <input type="text" id="facility" name="facility">
+
+                    <label for="participant">Name of Participant / Injured Party:</label>
+                    <input type="text" id="participant_first" name="participant_first" placeholder="First Name">
+                    <input type="text" id="participant_last" name="participant_last" placeholder="Last Name">
+
+                    <label for="age">Age of Participant:</label>
+                    <input type="number" id="age" name="age">
+
+                    <label for="guardian">Name of Parent / Guardian (If applicable):</label>
+                    <input type="text" id="guardian_first" name="guardian_first" placeholder="First Name">
+                    <input type="text" id="guardian_last" name="guardian_last" placeholder="Last Name">
+
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" name="phone" placeholder="(000) 000-0000">
+
+                    <label for="staff">Staff Completing Form:</label>
+                    <input type="text" id="staff_first" name="staff_first" placeholder="First Name">
+                    <input type="text" id="staff_last" name="staff_last" placeholder="Last Name">
+
+                    <label for="location">Area Where Accident / Incident Occurred:</label>
+                    <input type="text" id="location" name="location">
+
+                    <label for="description">Description of Incident:</label>
+                    <textarea id="description" name="description"></textarea>
+
+                    <label for="action_taken">Action Taken / Treatment Administered:</label>
+                    <textarea id="action_taken" name="action_taken"></textarea>
+
+                    <label for="witness1">Witness 1:</label>
+                    <input type="text" id="witness1_first" name="witness1_first" placeholder="First Name">
+                    <input type="text" id="witness1_last" name="witness1_last" placeholder="Last Name">
+
+                    <label for="witness2">Witness 2:</label>
+                    <input type="text" id="witness2_first" name="witness2_first" placeholder="First Name">
+                    <input type="text" id="witness2_last" name="witness2_last" placeholder="Last Name">
+
+                    <label for="followup">Follow Up Action (If applicable):</label>
+                    <textarea id="followup" name="followup"></textarea>
+
+                    <button type="submit" class="btn submit-btn">Submit</button>
+                </form>
+            </section>
+
+            <!-- Quick Action Buttons -->
+            <aside id="actions" class="dashboard-section">
+                <h2>Quick Actions</h2>
+                <button class="btn dispatch-btn">Dispatch Ambulance</button>
+                <button class="btn notify-btn">Notify Police</button>
+                <button class="btn alert-btn">Alert Hospitals</button>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2024 Emergency Response System</p>
+        </footer>
+    </div>
+
+    <script>
+        // Function to toggle section visibility
+        function showSection(sectionId) {
+            // Get all sections
+            const sections = document.querySelectorAll('.dashboard-section');
+            
+            // Hide all sections
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        }
+        
+        const socket = io();
+
+        // Listen for "request_accepted" event from the server
+        socket.on("request_accepted", (data) => {
+            alert(`Request accepted by ${data.responder}.`);
+            // Optionally, refresh or update the map with new route data
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.dashboard-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+        // Function to show a confirmation alert when the form is submitted
+        function confirmSubmissionAndRedirect() {
+            alert("Accident report submitted successfully!");
+            window.location.href = "{{ url_for('dashboard') }}";
+            return false; 
+        }
+        
+    </script>
+</body>
+</html>

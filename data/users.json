@@ -1,0 +1,15 @@
+{
+    "hospital": {
+      "username": "hospital1",
+      "password": "hospital123"
+    },
+    "ambulance": {
+      "username": "ambulance1",
+      "password": "ambulance123"
+    },
+    "police": {
+      "username": "police1",
+      "password": "police123"
+    }
+  }
+  

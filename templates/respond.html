@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respond to Alert</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Respond to Accident Alert</h2>
+        <p>Respond to the accident alert by selecting an option below:</p>
+
+        <!-- Response Form -->
+        <form action="/respond" method="POST">
+            <label for="responder_id">Responder ID:</label>
+            <input type="text" name="responder_id" id="responder_id" required>
+        
+            <label for="response">Response:</label>
+            <select name="response" id="response">
+                <option value="accept">Accept</option>
+                <option value="decline">Decline</option>
+            </select>
+        
+            <button type="submit">Submit</button>
+        </form>
+        
+
+        <!-- Display Message -->
+        <div id="responseMessage" class="mt-3"></div>
+    </div>
+
+    <script>
+        // Connect to the Socket.IO server
+        const socket = io();
+
+        // Handle the response form submission
+        $('#respondForm').submit(function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const responderId = $('#responderId').val();
+            const response = $('#response').val();
+
+            // Send the response to the Flask server
+            $.ajax({
+                type: 'POST',
+                url: '/respond',
+                data: {
+                    responder_id: responderId,
+                    response: response
+                },
+                success: function(data) {
+                    // Display success message
+                    $('#responseMessage').html(`<div class="alert alert-success">${data.message}</div>`);
+
+                    // Emit response to all connected clients
+                    socket.emit('response_update', {
+                        responder: responderId,
+                        response: response
+                    });
+                },
+                error: function(error) {
+                    // Display error message
+                    $('#responseMessage').html(`<div class="alert alert-danger">${error.responseJSON.message}</div>`);
+                }
+            });
+        });
+
+        // Listen for real-time updates from the server
+        socket.on('response_update', function(data) {
+            // Display the real-time update message
+            $('#responseMessage').html(`<div class="alert alert-info">${data.responder} has responded: ${data.response}</div>`);
+        });
+    </script>
+
+</body>
+</html>
