@@ -16,12 +16,13 @@ def send_sms_notification(accident_location, recipients):
     - accident_location (str): Location of the accident.
     - recipients (dict): Dictionary with recipient roles and their phone numbers.
     """
+
     # Base URL for local server
-    base_response_url = "https://f8e8-36-255-85-218.ngrok-free.app"
+    base_response_url = "https://unbiased-factually-blowfish.ngrok-free.app"
 
     for role, phone_number in recipients.items():
         # Generate response link for the recipient
-        response_link = f"{base_response_url}?responder={role}"
+        response_link = f"{base_response_url}/respond?responder={role}"
         message_body = (
             f"Accident Alert! An accident has occurred at: {accident_location}. "
             f"Click here to respond: {response_link}"

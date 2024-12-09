@@ -11,7 +11,7 @@ socketio = SocketIO(app)
 with open("data/users.json") as f:
     users = json.load(f)
 
-lock = {"is_locked": False, "accepted_by": None}
+lock = {"is_locked": False, "accepted_by": None, "accepted_role": None}
 
 # Alert and responder data
 alerts = [
@@ -65,40 +65,60 @@ def dashboard():
     else:
         return "Invalid login credentials", 401
 
-@app.route("/respond", methods=["POST"])
+
+@app.route("/respond", methods=["POST", "GET"])
 def respond():
     """
-    Handles response from any responder (ambulance, police, hospital) and broadcasts real-time updates.
+    Handles response from any responder role and broadcasts real-time updates.
     """
-    responder_id = request.form.get("responder_id")
-    response = request.form.get("response", "accept")  # Default response is "accept"
+    if request.method == "GET":
+        return render_template(
+            "respond.html",
+            responder_role=None,
+            response=None,
+            message="Waiting for responder input",
+        )
 
-    if not responder_id:
-        return jsonify({"message": "Responder ID is required"}), 400
-    
-    print(f"Responder ID: {responder_id}, Response: {response}")
+    responder_role = request.form.get("responder_role")
+    response = request.form.get("response")
 
-    # Handle acceptance of the request
+    if not responder_role:
+        return jsonify({"message": "Responder role is required"}), 400
+
     if response == "accept":
         if not lock["is_locked"]:
+            # Update lock to mark the request as accepted
             lock["is_locked"] = True
-            lock["accepted_by"] = responder_id
+            lock["accepted_by"] = responder_role
+            lock["accepted_role"] = responder_role
 
-            # Emit the "response_update" event to notify all connected clients
-            socketio.emit("response_update", {"responder": responder_id, "response": "accepted"}, broadcast=True)
+            # Emit acceptance update to all connected clients
+            socketio.emit(
+                "response_update",
+                {"responder": responder_role, "response": "accepted"},
+                to="/",  # Broadcast to all clients
+            )
 
-            # Render the respond.html template and pass the relevant information
-            return render_template("respond.html", responder_id=responder_id, response="accepted", message=f"Request accepted by {responder_id}")
-
+            return jsonify({"message": f"Request accepted by {responder_role}"}), 200
         else:
-            return render_template("respond.html", responder_id=responder_id, response="rejected", message="Request already accepted by another responder")
+            return jsonify(
+                {
+                    "message": f"Request already accepted by {lock['accepted_by']} ({lock['accepted_role']})"
+                }
+            ), 403
 
-    else:
-        # Handle request decline
-        return render_template("respond.html", responder_id=responder_id, response="declined", message=f"Request declined by {responder_id}")
+    elif response == "reject":
+        # Emit rejection update to all connected clients
+        socketio.emit(
+            "response_update",
+            {"responder": responder_role, "response": "rejected"},
+            to="/",  # Broadcast to all clients
+        )
+        return jsonify({"message": f"Request declined by {responder_role}"}), 200
 
+    return jsonify({"message": "Invalid response"}), 400
 
-
+    
 
 @socketio.on("connect")
 def handle_connect():

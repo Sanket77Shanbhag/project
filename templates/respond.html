@@ -13,20 +13,9 @@
         <h2>Respond to Accident Alert</h2>
         <p>Respond to the accident alert by selecting an option below:</p>
 
-        <!-- Response Form -->
-        <form action="/respond" method="POST">
-            <label for="responder_id">Responder ID:</label>
-            <input type="text" name="responder_id" id="responder_id" required>
-        
-            <label for="response">Response:</label>
-            <select name="response" id="response">
-                <option value="accept">Accept</option>
-                <option value="decline">Decline</option>
-            </select>
-        
-            <button type="submit">Submit</button>
-        </form>
-        
+        <!-- Response Buttons -->
+        <button id="accept-btn" class="btn btn-success">Accept</button>
+        <button id="reject-btn" class="btn btn-danger">Reject</button>
 
         <!-- Display Message -->
         <div id="responseMessage" class="mt-3"></div>
@@ -36,44 +25,45 @@
         // Connect to the Socket.IO server
         const socket = io();
 
-        // Handle the response form submission
-        $('#respondForm').submit(function(event) {
-            event.preventDefault(); // Prevent the default form submission
+        // Role of the responder (e.g., ambulance, police, hospital)
+        const responderRole = "ambulance"; // Replace with dynamic role if needed
 
-            const responderId = $('#responderId').val();
-            const response = $('#response').val();
+        // Handle "Accept" button click
+        $('#accept-btn').click(function () {
+            sendResponse('accept');
+        });
 
-            // Send the response to the Flask server
+        // Handle "Reject" button click
+        $('#reject-btn').click(function () {
+            sendResponse('reject');
+        });
+
+        // Function to send response
+        function sendResponse(response) {
             $.ajax({
                 type: 'POST',
                 url: '/respond',
                 data: {
-                    responder_id: responderId,
+                    responder_role: responderRole,
                     response: response
                 },
-                success: function(data) {
-                    // Display success message
+                success: function (data) {
                     $('#responseMessage').html(`<div class="alert alert-success">${data.message}</div>`);
-
-                    // Emit response to all connected clients
-                    socket.emit('response_update', {
-                        responder: responderId,
-                        response: response
-                    });
+                    if (response === 'accept') {
+                        // Disable buttons after acceptance
+                        $('#accept-btn, #reject-btn').prop('disabled', true);
+                    }
                 },
-                error: function(error) {
-                    // Display error message
+                error: function (error) {
                     $('#responseMessage').html(`<div class="alert alert-danger">${error.responseJSON.message}</div>`);
                 }
             });
-        });
+        }
 
-        // Listen for real-time updates from the server
-        socket.on('response_update', function(data) {
-            // Display the real-time update message
+        // Listen for real-time updates
+        socket.on('response_update', function (data) {
             $('#responseMessage').html(`<div class="alert alert-info">${data.responder} has responded: ${data.response}</div>`);
         });
     </script>
-
 </body>
 </html>
