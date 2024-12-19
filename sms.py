@@ -1,9 +1,9 @@
 from twilio.rest import Client
 
 # Twilio credentials
-ACCOUNT_SID = "AC20917bc01f16312181d5036ef679f53a"
-AUTH_TOKEN = "29f89587ddc864f13bf24a8e1ce33b01"
-TWILIO_PHONE_NUMBER = "+17622262729"
+ACCOUNT_SID = ""
+AUTH_TOKEN = ""
+TWILIO_PHONE_NUMBER = ""
 
 # Initialize Twilio client
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
