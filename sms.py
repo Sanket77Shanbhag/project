@@ -18,7 +18,7 @@ def send_sms_notification(accident_location, recipients):
     """
 
     # Base URL for local server
-    base_response_url = "https://unbiased-factually-blowfish.ngrok-free.app"
+    base_response_url = " https://5144-36-255-85-221.ngrok-free.app"
 
     for role, phone_number in recipients.items():
         # Generate response link for the recipient

@@ -1,98 +1,129 @@
-/* General Page Style */
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #f3f4f6, #ffffff);
-    margin: 0;
-    padding: 0;
-}
+* {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-/* Login Page Container */
-.login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #0056b3, #00338e);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.login-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 350px;
-    text-align: center;
-}
+    .login-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        max-width: 400px;
+        animation: slideIn 0.5s ease-out;
+    }
 
-/* Logo and Header */
-.logo {
-    width: 80px;
-    margin-bottom: 20px;
-}
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
 
-.login-header h2 {
-    color: #343a40;
-    margin-bottom: 5px;
-}
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
 
-.login-header p {
-    color: #6c757d;
-    font-size: 14px;
-}
+    .login-header img {
+        width: 80px;
+        margin-bottom: 1rem;
+    }
 
-/* Form Styling */
-.login-form {
-    margin-top: 20px;
-}
+    .login-header h2 {
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
 
-.form-group {
-    text-align: left;
-    margin-bottom: 15px;
-}
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #495057;
-}
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #555;
+        font-weight: bold;
+    }
 
-.form-group select,
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 14px;
-    color: #495057;
-}
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
 
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #0056b3;
+        outline: none;
+    }
 
-/* Button Styling */
-.btn {
-    width: 100%;
-    padding: 10px;
-    background: #007bff;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
+    .form-group i {
+        position: absolute;
+        right: 12px;
+        top: 40px;
+        color: #666;
+    }
 
-.btn:hover {
-    background: #0056b3;
-}
+    .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: #0056b3;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
 
-/* Footer */
-.login-footer {
-    margin-top: 20px;
-    font-size: 12px;
-    color: #adb5bd;
-}
+    .login-btn:hover {
+        background: #003d82;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .loading-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #0056b3;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }

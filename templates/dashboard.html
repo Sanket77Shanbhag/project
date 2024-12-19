@@ -4,218 +4,571 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ role.capitalize() }} Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <style>
-        /* Hide sections by default */
-        .dashboard-section {
-            display: none;
-        }
-        .dashboard-section.active {
-            display: block;
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
         }
 
-        /* Basic styles for layout */
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            box-sizing: border-box;
         }
 
-        .dashboard-header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: #343a40;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            height: 100vh;
+            width: 250px;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 60px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu {
+            margin-top: 2rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 0.8rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        /* Map Container */
+        .map-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .action-card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        /* Reports Section */
+        .reports-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .reports-section.active {
+            display: block;
+        }
+
+        .report-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .alert-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            width: 100%;
+            display_content: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #34495e;
+        }
+
+        .sidebar-header img {
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-menu ul li {
+            margin: 0;
+        }
+
+        .nav-menu ul li a {
+            text-decoration: none;
+            color: white;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .nav-menu ul li a:hover {
+            background-color: #34495e;
+        }
+
+        .dashboard-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            background-color: #ecf0f1;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #bdc3c7;
         }
 
         .dashboard-header h1 {
             margin: 0;
         }
 
-        .dashboard-nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 15px;
-        }
-
-        .dashboard-nav ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .dashboard-content {
-            display: flex;
-            flex-direction: column;
+        .dashboard-section {
             padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
-        .btn {
-            padding: 10px 15px;
-            margin: 5px 0;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
+        .map-container {
+            margin: 20px 0;
+            background-color: #bdc3c7;
+            height: 380px;
+            width: 80%; /* Added width to make the map smaller overall */
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto; 
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: space-around;
+        }
+
+        .action-card {
+            background-color: #ecf0f1;
+            text-align: center;
+            padding: 20px;
             border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
         }
 
-        .btn:hover {
-            background-color: #0056b3;
+        .action-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        footer {
-            text-align: center;
+        .action-card i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .action-card h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .dashboard-section {
+            display: none; /* Hide all sections by default */
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 20px;
+        }
+        .abc{
+            display: block;
+            max-width:800px;
+        }
+        #live-tracking {
+            display: block; /* Show live tracking by default */
+        }
+        
+        .incident-report-form {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .incident-report-form label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .incident-report-form input[type="text"],
+        .incident-report-form input[type="number"],
+        .incident-report-form input[type="date"],
+        .incident-report-form input[type="time"],
+        .incident-report-form input[type="tel"],
+        .incident-report-form textarea {
+            width: 100%;
             padding: 10px;
-            background-color: #333;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .incident-report-form input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .incident-report-form button.submit-btn {
+            background-color: #27ae60;
             color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .incident-report-form button.submit-btn:hover {
+            background-color: #2ecc71;
+        }
+
+        .submit-btn {
+            grid-column: span 2;
+            background: #0056b3;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .submit-btn:hover {
+            background: #004494;
+        }
+
+        .dashboard-content {
+            margin-left: 250px;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <h1>{{ role.capitalize() }} Dashboard</h1>
-            <nav class="dashboard-nav">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" width="80px">
+                <h3>ERS Dashboard</h3>
+            </div>
+            
+            <nav class="nav-menu">
                 <ul>
-                    <li><a href="#live-tracking" onclick="showSection('live-tracking')">Live Tracking</a></li>
-                    <li><a href="#reports" onclick="showSection('reports')">Reports</a></li>
-                    <li><a href="/">Logout</a></li>
+                    <li><a href="#" onclick="showSection('live-tracking')">
+                        <i class="fas fa-map-marked-alt"></i> Live Tracking</a></li>
+                    <li><a href="#" onclick="showSection('reports')">
+                        <i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="/">
+                        <i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>
-        </header>
+        </aside>
 
-        <!-- Main Dashboard Content -->
+        <!-- Main Content -->
         <div class="dashboard-content">
-            <!-- Live Tracking Section -->
-            <main id="live-tracking" class="dashboard-section active">
-                <h2>Live Accident Tracking Map</h2>
-                <div>
+            <header class="dashboard-header">
+                <h1>{{ role.capitalize() }} Dashboard</h1>
+                <span id="current-time"></span>
+            </header>
+            
+            
+                <!-- Live Tracking Section -->
+            <section id="live-tracking" class="dashboard-section">
+                <h2>Accident Analytics</h2></br></br>
+                <img src="{{ url_for('static', filename='images/analysis.png') }}" alt="Logo" ></br></br>
+                <h2>Live Accident Tracking Map</h2></br></br>
+                <div class="map-container">
                     {{ map_html|safe }}
                 </div>
-            </main>
+
+                <div class="quick-actions">
+                    <div class="action-card" onclick="handleDispatch()">
+                        <i class="fas fa-ambulance"></i>
+                        <h3>Dispatch Ambulance</h3>
+                    </div>
+                    <div class="action-card" onclick="handlePoliceNotify()">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Notify Police</h3>
+                    </div>
+                    <div class="action-card" onclick="handleHospitalAlert()">
+                        <i class="fas fa-hospital"></i>
+                        <h3>Alert Hospitals</h3>
+                    </div>
+                </div>
+            </section>
 
             <!-- Reports Section -->
             <section id="reports" class="dashboard-section">
                 <h2>Accident / Incident Report</h2>
-                <form action="/submit-report" method="post" class="incident-report-form" onsubmit="return confirmSubmissionAndRedirect()">
-                    <label>Report Type:</label>
-                    <input type="radio" id="incident" name="report_type" value="Incident">
-                    <label for="incident">Incident</label>
-                    <input type="radio" id="accident" name="report_type" value="Accident">
-                    <label for="accident">Accident</label>
-
-                    <label for="time">Time:</label>
-                    <input type="time" id="time" name="time">
-
-                    <label for="date">Date:</label>
-                    <input type="date" id="date" name="date">
-
-                    <label for="facility">Reporting Facility:</label>
-                    <input type="text" id="facility" name="facility">
-
-                    <label for="participant">Name of Participant / Injured Party:</label>
-                    <input type="text" id="participant_first" name="participant_first" placeholder="First Name">
-                    <input type="text" id="participant_last" name="participant_last" placeholder="Last Name">
-
-                    <label for="age">Age of Participant:</label>
-                    <input type="number" id="age" name="age">
-
-                    <label for="guardian">Name of Parent / Guardian (If applicable):</label>
-                    <input type="text" id="guardian_first" name="guardian_first" placeholder="First Name">
-                    <input type="text" id="guardian_last" name="guardian_last" placeholder="Last Name">
-
-                    <label for="phone">Phone Number:</label>
-                    <input type="tel" id="phone" name="phone" placeholder="(000) 000-0000">
-
-                    <label for="staff">Staff Completing Form:</label>
-                    <input type="text" id="staff_first" name="staff_first" placeholder="First Name">
-                    <input type="text" id="staff_last" name="staff_last" placeholder="Last Name">
-
-                    <label for="location">Area Where Accident / Incident Occurred:</label>
-                    <input type="text" id="location" name="location">
-
-                    <label for="description">Description of Incident:</label>
-                    <textarea id="description" name="description"></textarea>
-
-                    <label for="action_taken">Action Taken / Treatment Administered:</label>
-                    <textarea id="action_taken" name="action_taken"></textarea>
-
-                    <label for="witness1">Witness 1:</label>
-                    <input type="text" id="witness1_first" name="witness1_first" placeholder="First Name">
-                    <input type="text" id="witness1_last" name="witness1_last" placeholder="Last Name">
-
-                    <label for="witness2">Witness 2:</label>
-                    <input type="text" id="witness2_first" name="witness2_first" placeholder="First Name">
-                    <input type="text" id="witness2_last" name="witness2_last" placeholder="Last Name">
-
-                    <label for="followup">Follow Up Action (If applicable):</label>
-                    <textarea id="followup" name="followup"></textarea>
-
-                    <button type="submit" class="btn submit-btn">Submit</button>
+                <form class="incident-report-form" onsubmit="return handleFormSubmit(event)">
+                            <label>Report Type:</label>
+                            <input type="radio" id="incident" name="report_type" value="Incident">
+                            <label for="incident">Incident</label>
+                            <input type="radio" id="accident" name="report_type" value="Accident">
+                            <label for="accident">Accident</label>
+        
+                            <label for="time">Time:</label>
+                            <input type="time" id="time" name="time">
+        
+                            <label for="date">Date:</label>
+                            <input type="date" id="date" name="date">
+        
+                            <label for="facility">Reporting Facility:</label>
+                            <input type="text" id="facility" name="facility">
+        
+                            <label for="participant">Name of Participant / Injured Party:</label>
+                            <input type="text" id="participant_first" name="participant_first" placeholder="First Name">
+                            <input type="text" id="participant_last" name="participant_last" placeholder="Last Name">
+        
+                            <label for="age">Age of Participant:</label>
+                            <input type="number" id="age" name="age">
+        
+                            <label for="guardian">Name of Parent / Guardian (If applicable):</label>
+                            <input type="text" id="guardian_first" name="guardian_first" placeholder="First Name">
+                            <input type="text" id="guardian_last" name="guardian_last" placeholder="Last Name">
+        
+                            <label for="phone">Phone Number:</label>
+                            <input type="tel" id="phone" name="phone" placeholder="(000) 000-0000">
+        
+                            <label for="staff">Staff Completing Form:</label>
+                            <input type="text" id="staff_first" name="staff_first" placeholder="First Name">
+                            <input type="text" id="staff_last" name="staff_last" placeholder="Last Name">
+        
+                            <label for="location">Area Where Accident / Incident Occurred:</label>
+                            <input type="text" id="location" name="location">
+        
+                            <label for="description">Description of Incident:</label>
+                            <textarea id="description" name="description"></textarea>
+        
+                            <label for="action_taken">Action Taken / Treatment Administered:</label>
+                            <textarea id="action_taken" name="action_taken"></textarea>
+        
+                            <label for="witness1">Witness 1:</label>
+                            <input type="text" id="witness1_first" name="witness1_first" placeholder="First Name">
+                            <input type="text" id="witness1_last" name="witness1_last" placeholder="Last Name">
+        
+                            <label for="witness2">Witness 2:</label>
+                            <input type="text" id="witness2_first" name="witness2_first" placeholder="First Name">
+                            <input type="text" id="witness2_last" name="witness2_last" placeholder="Last Name">
+        
+                            <label for="followup">Follow Up Action (If applicable):</label>
+                            <textarea id="followup" name="followup"></textarea>
+        
+                            <button type="submit" class="btn submit-btn">Submit</button>
+                        
                 </form>
             </section>
-
-            <!-- Quick Action Buttons -->
-            <aside id="actions" class="dashboard-section">
-                <h2>Quick Actions</h2>
-                <button class="btn dispatch-btn">Dispatch Ambulance</button>
-                <button class="btn notify-btn">Notify Police</button>
-                <button class="btn alert-btn">Alert Hospitals</button>
-            </aside>
         </div>
-
-        <!-- Footer -->
-        <footer>
-            <p>© 2024 Emergency Response System</p>
-        </footer>
     </div>
 
     <script>
-        // Function to toggle section visibility
+        // Function to handle section visibility
         function showSection(sectionId) {
-            // Get all sections
-            const sections = document.querySelectorAll('.dashboard-section');
-            
             // Hide all sections
-            sections.forEach(section => {
-                section.classList.remove('active');
+            document.querySelectorAll('.dashboard-section').forEach(section => {
+                section.style.display = 'none';
             });
             
-            // Show the selected section
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) {
-                targetSection.classList.add('active');
+            // Show selected section
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
             }
         }
-        
+
+        // Function to handle form submission
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Show success message
+            alert('Report submitted successfully!');
+            
+            // Clear form
+            event.target.reset();
+            
+            // Return to live tracking
+            showSection('live-tracking');
+            
+            return false;
+        }
+
+        // Update current time
+        function updateTime() {
+            const timeElement = document.getElementById('current-time');
+            timeElement.textContent = new Date().toLocaleString();
+        }
+
+        // Update time every second
+        setInterval(updateTime, 1000);
+        updateTime(); // Initial update
+
+        // Initialize socket connection
         const socket = io();
-
-        // Listen for "request_accepted" event from the server
-        socket.on("request_accepted", (data) => {
-            alert(`Request accepted by ${data.responder}.`);
-            // Optionally, refresh or update the map with new route data
-        });
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.dashboard-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById(sectionId).classList.add('active');
-        }
-        // Function to show a confirmation alert when the form is submitted
-        function confirmSubmissionAndRedirect() {
-            alert("Accident report submitted successfully!");
-            window.location.href = "{{ url_for('dashboard') }}";
-            return false; 
-        }
-        
     </script>
 </body>
 </html>
